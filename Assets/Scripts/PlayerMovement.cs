@@ -4,15 +4,36 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public float speed = 3f;
+
+    private void Update()
     {
-        
+        Movement();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Movement()
     {
+        Vector2 moveDirection = Vector2.zero;
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            moveDirection.y++;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            moveDirection.y--; 
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            moveDirection.x++;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            moveDirection.x--;
+        }
+        moveDirection.Normalize();
+        moveDirection *= (speed * Time.deltaTime);
         
+        transform.position += (Vector3) moveDirection;
     }
 }

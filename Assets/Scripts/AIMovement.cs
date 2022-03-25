@@ -1,73 +1,127 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class AIMovement : MonoBehaviour
 {
-    public GameObject position0;
-    public GameObject position1;
-
+    public Transform player;
+    public float chaseDistance = 3;
     
+    //public GameObject[] position;
+    public List<GameObject> position;
+    public int positionIndex = 0;
+    public GameObject wayPointPrefab;
+    
+        
     public float speed = 1.5f;
-    public void Start()
-    {
-            
-    }
-    // Update is called once per frame
-    private void Update()
-    {
+    public float minGoalDistance = 0.05f;
 
-         AIMoveTowards();
-        //Method 1 X + -
-        #region Method 1
-        //if cube is on left of dimond, move right
-
-        /*
-        if (transform.position.x < position0.transform.position.x)
+    /*private void Update()
+    {
+        //are we within the player chase distance?
+        if (Vector2.Distance(transform.position, player.position) < chaseDistance)
         {
-            
-            AIPosition.x += (1 * Time.deltaTime);           
+            //move towards player
+            AIMoveTowards(player);
         }
         else
-        {           
-            AIPosition.x -= (1 * Time.deltaTime);           
-        }
-        transform.position = AIPosition;
-        */
-        #endregion
-        // Method 2 Y + -
-        #region Method 2
-        /*
-        if (transform.position.y < position0.transform.position.y)
         {
-            transform.position += (Vector3) Vector2.up * 1 * Time.deltaTime;
+            WaypointUpdate();
+            //move towards our waypoints
+            AIMoveTowards(position[positionIndex].transform);
         }
-        else
-        {    
-        transform.position -= (Vector3)Vector2.up * 1 * Time.deltaTime;       
-        }
-        */
-        #endregion
-        //Method 3
-        //direction from a to b
-        //is B - A
-        // X = B - A
-        #region Method 3
-        /*
-        Vector2 directionToPos0 = (position0.transform.position - transform.position);
-        directionToPos0.Normalize();
-        transform.position += (Vector3)directionToPos0 * 1 * Time.deltaTime;
-        */
-        #endregion
+    }*/
 
-    }
-    private void AIMoveTowards()
+    private void Start()
     {
-        Vector2 AIPosition = transform.position;
-        Vector2 directionToPos0 = (position0.transform.position);
-        directionToPos0.Normalize();
-        transform.position += (Vector3)directionToPos0 * speed * Time.deltaTime;
+        NewWayPoint();
+        NewWayPoint();
+        NewWayPoint();
+        NewWayPoint();
+
+
+        RemoveCurrentWayPoint();
+        RemoveCurrentWayPoint();
     }
 
+    public void RemoveCurrentWayPoint()
+    {
+        //method 1 give list.remove a gameobject to remove from the list
+        //GameObject current = position[positionIndex];
+        //position.Remove( current);
+       // Destroy(current);
+        
+        //method 2 give list.removeat an index to remove from the list
+       // GameObject current = position[positionIndex];
+        //position.RemoveAt(positionIndex);
+        //Destroy(current);
+    }
 
+    public void NewWayPoint()
+    {
+        float x = Random.Range(-5f, 5f);
+        float y = Random.Range(-5f, 5f);
+        
+        GameObject newPoint = Instantiate(wayPointPrefab, new Vector2(x,y), Quaternion.identity);
+        
+        position.Add(newPoint);
+        
+
+    }
+
+    public void FindClosestWaypoint()
+    {
+        float nearest = float.PositiveInfinity;
+        int nearestIndex = 0;
+
+        for (int i = 0; i < position.Count; i++)
+        {
+            float distance = Vector2.Distance(transform.position, position[i].transform.position);
+            if (distance < nearest)
+            {
+                nearest = distance;
+                nearestIndex = i;
+            }
+        }
+
+        positionIndex = nearestIndex;
+    }
+    
+
+    public bool IsPlayerInRange()
+    {
+        return Vector2.Distance(transform.position, player.position) < chaseDistance;
+    }
+    
+
+    public void WaypointUpdate()
+    {
+        if (Vector2.Distance(transform.position, position[positionIndex].transform.position) < minGoalDistance)
+        {
+            positionIndex++;
+            
+            if (positionIndex >= position.Count)
+            {
+                positionIndex = 0;
+            }
+        }
+    }
+    
+    public void AIMoveTowards(Transform goal)
+    {
+        //if we are not near the goal
+        if (Vector2.Distance(transform.position, goal.position) > minGoalDistance)
+        {
+            //direction from A to B
+            // is B - A
+            // X = B - A
+            Vector2 directionToGoal = (goal.position - transform.position);
+            directionToGoal.Normalize();
+            transform.position += (Vector3) directionToGoal * speed * Time.deltaTime;
+        }
+    }
+    
 }
